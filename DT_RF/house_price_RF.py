@@ -98,6 +98,7 @@ forest = RandomForestRegressor(n_estimators=100, max_depth=15, max_features='thi
 forest.fit(X_train, y_train)
 y_predict = forest.predict(X_test)
 print(y_predict)
+print(forest.oob_score)
 
 submission = pd.DataFrame({
     'Id': df_test['Id'],

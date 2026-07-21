@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from CARTClassifier import CARTClassifier
@@ -29,7 +30,6 @@ tree.fit(X_train, y_train)
 
 y_pred = tree.predict(X_test)
 
-
 def classifier_metrics(y_true, y_pred, n_classes):
     acc = np.sum(y_true == y_pred) / len(y_true)
     precisions = []
@@ -55,10 +55,98 @@ def classifier_metrics(y_true, y_pred, n_classes):
 
     return acc, macro_precision, macro_recall, macro_f1
 
-print(le_Drug.inverse_transform(y_pred))
+# print(le_Drug.inverse_transform(y_pred))
 
 acc, prec, recall, f1_score = classifier_metrics(y_test, y_pred, len(np.unique(y)))
 print("ACC: ", acc)
 print("PREC: ", prec)
 print("RECALL: ", recall)
 print("F1_SCORE: ", f1_score)
+
+feature_names = df.drop(columns='Drug').columns
+
+importances = tree.feature_importances
+
+plt.figure(figsize=(8, 5))
+if importances is not None:
+    plt.bar(feature_names, importances, color='skyblue', edgecolor='black')
+
+plt.title('Feature Importances - CART Classifier', fontsize=14, fontweight='bold')
+plt.xlabel('Features', fontsize=12)
+plt.ylabel('Importance Score', fontsize=12)
+
+plt.tight_layout()
+plt.show()
+
+# ---------------------------------Nếu loại bỏ feature không quan trọng ---------------#
+print("Nếu loại bỏ feature không quan trọng")
+X = df.drop(columns=['Drug', 'Sex']).values
+y = df['Drug'].values
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=100)
+
+tree = CARTClassifier(criterion='gini', max_depth=5)
+
+tree.fit(X_train, y_train)
+
+y_pred = tree.predict(X_test)
+
+# print(le_Drug.inverse_transform(y_pred))
+
+acc, prec, recall, f1_score = classifier_metrics(y_test, y_pred, len(np.unique(y)))
+print("ACC: ", acc)
+print("PREC: ", prec)
+print("RECALL: ", recall)
+print("F1_SCORE: ", f1_score)
+
+feature_names = df.drop(columns=['Drug', 'Sex']).columns
+
+importances = tree.feature_importances
+
+plt.figure(figsize=(8, 5))
+if importances is not None:
+    plt.bar(feature_names, importances, color='skyblue', edgecolor='black')
+
+plt.title('Feature Importances - CART Classifier', fontsize=14, fontweight='bold')
+plt.xlabel('Features', fontsize=12)
+plt.ylabel('Importance Score', fontsize=12)
+
+plt.tight_layout()
+plt.show()
+
+#-------------------- Nếu xóa feature quan trọng --------------------#
+
+print(" Nếu xóa feature quan trọng")
+X = df.drop(columns=['Drug', 'Na_to_K']).values
+y = df['Drug'].values
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=100)
+
+tree = CARTClassifier(criterion='gini', max_depth=5)
+
+tree.fit(X_train, y_train)
+
+y_pred = tree.predict(X_test)
+
+# print(le_Drug.inverse_transform(y_pred))
+
+acc, prec, recall, f1_score = classifier_metrics(y_test, y_pred, len(np.unique(y)))
+print("ACC: ", acc)
+print("PREC: ", prec)
+print("RECALL: ", recall)
+print("F1_SCORE: ", f1_score)
+
+feature_names = df.drop(columns=['Drug', 'Na_to_K']).columns
+
+importances = tree.feature_importances
+
+plt.figure(figsize=(8, 5))
+if importances is not None:
+    plt.bar(feature_names, importances, color='skyblue', edgecolor='black')
+
+plt.title('Feature Importances - CART Classifier', fontsize=14, fontweight='bold')
+plt.xlabel('Features', fontsize=12)
+plt.ylabel('Importance Score', fontsize=12)
+
+plt.tight_layout()
+plt.show()

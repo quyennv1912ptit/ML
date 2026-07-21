@@ -4,7 +4,7 @@ import numpy as np
 from Node import Node
 
 class CARTRegressor:
-    def __init__(self, max_depth = None, max_features = None, min_samples_split = 2, min_samples_leaf = 1, min_mse_decrease = 0):
+    def __init__(self, max_depth = None, max_features = None, min_samples_split = 2, min_samples_leaf = 1, ccp_alpha = 0, min_mse_decrease = 0):
         self.max_depth = max_depth
         self.max_features = max_features
         self.min_samples_split = min_samples_split
@@ -12,6 +12,9 @@ class CARTRegressor:
         self.min_mse_decrease = min_mse_decrease
         self.root = None
         self.n_leaves = 0
+        self.n_total_samples = 0
+        self.feature_importances = None
+        self.ccp_alpha = ccp_alpha
 
     @staticmethod
     def mse(y):
@@ -96,6 +99,9 @@ class CARTRegressor:
             self.n_leaves += 1
             return node
 
+        if self.feature_importances is not None:
+            self.feature_importances[split['feature']] += (n_samples / self.n_total_samples) * split['gain']
+
         j, t = split['feature'], split['threshold']
         left = X[:, j] <= t
 
@@ -106,11 +112,41 @@ class CARTRegressor:
         node.right = self.build(X[~left], y[~left], depth+1)
         return node
 
+    def prune(self, node):
+        if node is None:
+            return 0.0, 0
+
+        if node.is_leaf:
+            cost = (node.n_samples / self.n_total_samples) * node.impurity
+            return cost, 1
+
+        cost_left, leaves_left = self.prune(node.left)
+        cost_right, leaves_right = self.prune(node.right)
+
+        cost_children = cost_left + cost_right
+        leaves_children = leaves_left + leaves_right
+
+        cost_node = (node.n_samples / self.n_total_samples) * node.impurity
+
+        if cost_node <= cost_children + self.ccp_alpha * (leaves_children - 1):
+            node.left = None
+            node.right = None
+            self.n_leaves_ -= (leaves_children - 1)
+            return cost_node, 1
+
+        return cost_children, leaves_children
+
     def fit(self, X, y):
         X = np.asarray(X, dtype=float)
         y = np.asarray(y, dtype=float)
+        n_samples, n_features = X.shape
+        self.feature_importances = np.zeros(n_features)
+        self.n_total_samples = n_samples
         self.n_leaves = 0
         self.root = self.build(X, y, 0)
+        total = self.feature_importances.sum()
+        if total > 0:
+            self.feature_importances /= total
         return self
 
     def predict_one(self, x, node):
