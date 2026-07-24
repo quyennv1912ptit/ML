@@ -38,3 +38,13 @@ print("RMSE:", np.sqrt(mse))
 
 r_square = model.r_square(y_test, y_pred)
 print("R^2: ", r_square)
+
+feature_columns = df.drop(columns=['Price']).columns
+
+results_df = pd.DataFrame(X_test, columns=feature_columns)
+
+results_df['Actual_Price (y_test)'] = y_test
+results_df['Predicted_Price (y_pred)'] = y_pred
+
+filename = "prediction.csv"
+results_df.to_csv(filename, index=False)
