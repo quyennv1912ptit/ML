@@ -10,6 +10,8 @@ matplotlib.use('TkAgg')
 
 df = pd.read_csv("data.csv")
 
+print(df)
+
 df = df.dropna(axis=1, how='all')
 
 df_X = df.drop(columns=["id", "diagnosis"])
